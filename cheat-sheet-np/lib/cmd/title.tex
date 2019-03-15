@@ -1,0 +1,39 @@
+% Template:     Template Auxiliar LaTeX
+% Documento:    Funciones para insertar títulos
+% Versión:      6.0.9 (16/01/2019)
+% Codificación: UTF-8
+%
+% Autor: Pablo Pizarro R. @ppizarror
+%        Facultad de Ciencias Físicas y Matemáticas
+%        Universidad de Chile
+%        pablo.pizarro@ing.uchile.cl, ppizarror.com
+%
+% Sitio web:    [https://latex.ppizarror.com/Template-Auxiliares/]
+% Licencia MIT: [https://opensource.org/licenses/MIT]
+
+\newcommand{\sectionanum}[1]{
+	\emptyvarerr{\sectionanum}{#1}{Titulo no definido}
+	\phantomsection
+	\needspace{3\baselineskip}
+	\section*{#1}
+	\addcontentsline{toc}{section}{#1}
+	\stepcounter{section}
+}
+\newcommand{\subsectionanum}[1]{
+	\emptyvarerr{\subsectionanum}{#1}{Subtitulo no definido}
+	\subsection*{#1}
+	\addcontentsline{toc}{subsection}{#1}
+	\stepcounter{subsection}
+}
+\newcommand{\subsubsectionanum}[1]{
+	\emptyvarerr{\subsubsectionanum}{#1}{Sub-subtitulo no definido}
+	\subsubsection*{#1}
+	\addcontentsline{toc}{subsubsection}{#1}
+	\stepcounter{subsubsection}
+}
+\newcommand{\subsubsubsectionanum}[1]{
+	\emptyvarerr{\subsubsubsectionanum}{#1}{Sub-sub-subtitulo no definido}
+	\subsubsubsection*{#1}
+	\addcontentsline{toc}{subsubsubsection}{#1}
+	\stepcounter{subsubsubsection}
+}
