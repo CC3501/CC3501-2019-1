@@ -117,7 +117,6 @@ venv.bak/
 *.lol
 *.bbl
 *.blg
-*.tex
 
 # Archivos IDE
 .idea/
