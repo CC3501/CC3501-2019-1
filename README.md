@@ -9,4 +9,4 @@ Semestre otoño 2019.
 | Auxiliar | correo |
 | :-: |:-:|
 | Pablo Pizarro R. | pablo.pizarro@ing.uchile.cl |
-| M. Trujillo Berger | mtrujilloberger@gmail.com |
+| Diego Donoso | diego.donoso@ing.uchile.cl |
