@@ -32,8 +32,8 @@ class ChessBoard:
         self.h = h
 
         # Tile sizes
-        self.tile_size_x = self.w / 10
-        self.tile_size_y = self.h / 10
+        self.tile_size_x = self.w / 8
+        self.tile_size_y = self.h / 8
 
         # Creating shapes on GPU memory
         self.gpuQuadBlack = createQuad([0, 0, 0])
@@ -42,8 +42,8 @@ class ChessBoard:
     def draw_board(self, shaderProgram):
         # Draw board
         colorBlack = False
-        for i in range(10):  # y
-            for j in range(10):  # x
+        for i in range(8):  # y
+            for j in range(8):  # x
 
                 # Here we create the transform matrix
                 cx, cy = self.get_coord(i, j)
@@ -63,12 +63,12 @@ class ChessBoard:
 
     def get_coord(self, x, y):
         # Returns the coordinate of the element (x,y)
-        a = -self.w / 2 + x * self.w / 10
-        b = -self.h / 2 + y * self.h / 10
+        a = -self.w / 2 + x * self.w / 8
+        b = -self.h / 2 + y * self.h / 8
         return a, b
 
     def get_element_size(self):
-        return self.w / 10, self.h / 10
+        return self.w / 8, self.h / 8
 
 
 # we will use the global controller as communication with the callback function

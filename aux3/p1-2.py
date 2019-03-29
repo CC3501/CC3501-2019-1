@@ -188,7 +188,7 @@ if __name__ == "__main__":
     glUseProgram(shaderProgram)
 
     # Setting up the clear screen color
-    glClearColor(0.25, 0.25, 0.25, 1.0)
+    glClearColor(0.85, 0.85, 0.85, 1.0)
 
     # Creating shapes on GPU memory
     gpuQuadBlack = createQuad([0, 0, 0])
