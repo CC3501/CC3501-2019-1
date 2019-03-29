@@ -104,6 +104,7 @@ venv.bak/
 
 # Auxiliares
 *.ppt*
+*.doc*
 
 # Archivos latex
 *.aux
