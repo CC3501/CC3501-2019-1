@@ -1,5 +1,6 @@
 """
 Genera una spline de CatRom con varios vertices
+
 @author ppizarror
 """
 

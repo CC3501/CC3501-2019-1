@@ -3,6 +3,8 @@
 Daniel Calderon, CC3501, 2019-1
 Transformation matrices for computer graphics
 v2.0
+
+@modifiedby ppizarror
 """
 
 import numpy as np
@@ -139,9 +141,9 @@ def frustum(left, right, bottom, top, near, far):
 
 
 def perspective(fovy, aspect, near, far):
-    halfHeight = np.tan(np.pi * fovy / 360) * near
-    halfWidth = halfHeight * aspect
-    return frustum(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far)
+    half_height = np.tan(np.pi * fovy / 360) * near
+    half_width = half_height * aspect
+    return frustum(-half_width, half_width, -half_height, half_height, near, far)
 
 
 def ortho(left, right, bottom, top, near, far):
@@ -174,12 +176,12 @@ def lookAt(eye, at, up):
     side = np.cross(forward, up)
     side = side / np.linalg.norm(side)
 
-    newUp = np.cross(side, forward)
-    newUp = newUp / np.linalg.norm(newUp)
+    new_up = np.cross(side, forward)
+    new_up = new_up / np.linalg.norm(new_up)
 
     return np.array([
         [side[0], side[1], side[2], -np.dot(side, eye)],
-        [newUp[0], newUp[1], newUp[2], -np.dot(newUp, eye)],
+        [new_up[0], new_up[1], new_up[2], -np.dot(new_up, eye)],
         [-forward[0], -forward[1], -forward[2], np.dot(forward, eye)],
         [0, 0, 0, 1]
     ], dtype=np.float32)

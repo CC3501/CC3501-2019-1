@@ -2,6 +2,8 @@
 """
 Daniel Calderon, CC3501, 2019-1
 Simple Shaders
+
+@modifiedby ppizarror
 """
 
 from OpenGL.GL import *
@@ -48,15 +50,15 @@ def textureSimpleSetup(texture, imgName, wrapMode, filterMode):
 
     if image.mode == "RGB":
         internalFormat = GL_RGB
-        format = GL_RGB
+        formatf = GL_RGB
     elif image.mode == "RGBA":
         internalFormat = GL_RGBA
-        format = GL_RGBA
+        formatf = GL_RGBA
     else:
         print("Image mode not supported.")
         raise Exception()
 
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.size[0], image.size[1], 0, format, GL_UNSIGNED_BYTE, img_data)
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.size[0], image.size[1], 0, formatf, GL_UNSIGNED_BYTE, img_data)
 
 
 def toGPUShape(shape, wrapMode=None, filterMode=None):
@@ -81,8 +83,8 @@ def toGPUShape(shape, wrapMode=None, filterMode=None):
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuShape.ebo)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, len(indices) * INT_BYTES, indices, GL_STATIC_DRAW)
 
-    if shape.textureFileName != None:
-        assert wrapMode != None and filterMode != None
+    if shape.textureFileName is not None:
+        assert wrapMode is not None and filterMode is not None
 
         gpuShape.texture = glGenTextures(1)
         textureSimpleSetup(gpuShape.texture, shape.textureFileName, wrapMode, filterMode)
@@ -440,7 +442,7 @@ class SimpleTextureModelViewProjectionShaderProgram:
         glDrawElements(mode, shape.size, GL_UNSIGNED_INT, None)
 
 
-class SimpleFlatShaderProgram():
+class SimpleFlatShaderProgram:
 
     def __init__(self):
         vertex_shader = """
@@ -537,7 +539,7 @@ class SimpleFlatShaderProgram():
         glDrawElements(mode, shape.size, GL_UNSIGNED_INT, None)
 
 
-class SimpleTextureFlatShaderProgram():
+class SimpleTextureFlatShaderProgram:
 
     def __init__(self):
         vertex_shader = """
@@ -644,7 +646,7 @@ class SimpleTextureFlatShaderProgram():
         glDrawElements(mode, shape.size, GL_UNSIGNED_INT, None)
 
 
-class SimpleGouraudShaderProgram():
+class SimpleGouraudShaderProgram:
 
     def __init__(self):
         vertex_shader = """
@@ -743,7 +745,7 @@ class SimpleGouraudShaderProgram():
         glDrawElements(mode, shape.size, GL_UNSIGNED_INT, None)
 
 
-class SimpleTextureGouraudShaderProgram():
+class SimpleTextureGouraudShaderProgram:
 
     def __init__(self):
         vertex_shader = """

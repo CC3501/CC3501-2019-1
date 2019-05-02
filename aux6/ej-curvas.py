@@ -1,12 +1,12 @@
 # coding=utf-8
 """
-Daniel Calderon, CC3501, 2019-1
-Drawing a cube with a texture
+Crea un modelo usando curvas en 3D
+@author ppizarror
 """
 
+# Library imports
 import glfw
 from OpenGL.GL import *
-import OpenGL.GL.shaders
 import numpy as np
 import sys
 
@@ -21,11 +21,12 @@ class Controller:
         self.fillPolygon = True
 
 
-# global controller as communication with the callback function
+# Global controller as communication with the callback function
 controller = Controller()
 
 
-def on_key(window, key, scancode, action, mods):
+# noinspection PyUnusedLocal
+def on_key(window_obj, key, scancode, action, mods):
     if action != glfw.PRESS:
         return
 
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     width = 600
     height = 600
 
-    window = glfw.create_window(width, height, "Cube with texture", None, None)
+    window = glfw.create_window(width, height, "C", None, None)
 
     if not window:
         glfw.terminate()
@@ -73,7 +74,7 @@ if __name__ == "__main__":
     glEnable(GL_DEPTH_TEST)
 
     # Creating shapes on GPU memory
-    gpuTextureCube = es.toGPUShape(bs.createTextureCube("images_2.png"), GL_REPEAT, GL_LINEAR)
+    gpuTextureCube = es.toGPUShape(bs.createTextureCube("shrek.png"), GL_REPEAT, GL_LINEAR)
     gpuAxis = es.toGPUShape(bs.createAxis(100))
 
     while not glfw.window_should_close(window):
@@ -81,7 +82,7 @@ if __name__ == "__main__":
         glfw.poll_events()
 
         # Filling or not the shapes depending on the controller state
-        if (controller.fillPolygon):
+        if controller.fillPolygon:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         else:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)

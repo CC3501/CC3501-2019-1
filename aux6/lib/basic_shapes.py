@@ -2,6 +2,8 @@
 """
 Daniel Calderon, CC3501, 2019-1
 vertices and indices for simple shapes
+
+@modifiedby ppizarror
 """
 
 
@@ -181,8 +183,7 @@ def createTextureCube(image_filename):
         0.5, -0.5, -0.5, 0, 0,
         0.5, 0.5, -0.5, 1, 0,
         0.5, 0.5, 0.5, 1, 1,
-        0.5, -0.5, 0.5, 0, 1
-        ,
+        0.5, -0.5, 0.5, 0, 1,
 
         # X-
         -0.5, -0.5, -0.5, 0, 0,
