@@ -14,6 +14,8 @@ import sys
 import lib.transformations2 as tr2
 import lib.basic_shapes as bs
 import lib.easy_shaders as es
+import lib.camera as cam
+from lib.mathlib import Point3
 
 # Import extended shapes
 import lib.basic_shapes_extended as bs_ext
@@ -31,13 +33,46 @@ class Controller:
 # Global controller as communication with the callback function
 controller = Controller()
 
+# Create camera
+camera = cam.CameraR(r=3, center=Point3())
+camera.set_r_vel(0.1)
+
 
 # noinspection PyUnusedLocal
 def on_key(window_obj, key, scancode, action, mods):
+    global controller
+
+    if action == glfw.REPEAT or action == glfw.PRESS:
+        # Move the camera position
+        if key == glfw.KEY_LEFT:
+            camera.rotate_phi(-4)
+        elif key == glfw.KEY_RIGHT:
+            camera.rotate_phi(4)
+        elif key == glfw.KEY_UP:
+            camera.rotate_theta(-4)
+        elif key == glfw.KEY_DOWN:
+            camera.rotate_theta(4)
+        elif key == glfw.KEY_A:
+            camera.close()
+        elif key == glfw.KEY_D:
+            camera.far()
+
+        # Move the center of the camera
+        elif key == glfw.KEY_I:
+            camera.move_center_x(-0.05)
+        elif key == glfw.KEY_K:
+            camera.move_center_x(0.05)
+        elif key == glfw.KEY_J:
+            camera.move_center_y(-0.05)
+        elif key == glfw.KEY_L:
+            camera.move_center_y(0.05)
+        elif key == glfw.KEY_U:
+            camera.move_center_z(-0.05)
+        elif key == glfw.KEY_O:
+            camera.move_center_z(0.05)
+
     if action != glfw.PRESS:
         return
-
-    global controller
 
     if key == glfw.KEY_SPACE:
         controller.fillPolygon = not controller.fillPolygon
@@ -45,20 +80,17 @@ def on_key(window_obj, key, scancode, action, mods):
     elif key == glfw.KEY_ESCAPE:
         sys.exit()
 
-    else:
-        print('Unknown key')
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     # Initialize glfw
     if not glfw.init():
         sys.exit()
 
-    width = 600
-    height = 600
+    width = 800
+    height = 800
 
-    window = glfw.create_window(width, height, "C", None, None)
+    window = glfw.create_window(width, height, 'Curvas', None, None)
 
     if not window:
         glfw.terminate()
@@ -81,7 +113,7 @@ if __name__ == "__main__":
     glEnable(GL_DEPTH_TEST)
 
     # Create models
-    gpuAxis = es.toGPUShape(bs.createAxis(10))
+    gpuAxis = es.toGPUShape(bs.createAxis(1))
     obj_axis = bs_ext.MergedShape(gpuAxis, shader=colorShaderProgram)
 
     # Create one side of the wall
@@ -108,6 +140,10 @@ if __name__ == "__main__":
     planeS = bs_ext.MergedShape(gpuTexturePlane, shader=textureShaderProgram)
     planeS.rotationX(np.pi / 2)
 
+    # Create camera target
+    obj_camTarget = bs_ext.MergedShape(es.toGPUShape(bs.createColorCube(1, 0, 0.5)), shader=colorShaderProgram)
+    obj_camTarget.uniformScale(0.05)
+
     # Main loop
     while not glfw.window_should_close(window):
         # Using GLFW to check for input events
@@ -126,15 +162,16 @@ if __name__ == "__main__":
         # projection = tr2.ortho(-1, 1, -1, 1, 0.1, 100)
         projection = tr2.perspective(45, float(width) / float(height), 0.1, 100)
 
-        # Create camera
-        view = tr2.lookAt(
-            np.array([2, 2, 1]),
-            np.array([0, 0, 0]),
-            np.array([0, 0, 1])
-        )
+        # Get camera view matrix
+        view = camera.get_view()
+
+        # Update target cube object
+        t = tr2.translate(camera.get_center_x(), camera.get_center_y(), camera.get_center_z())
+        obj_camTarget.applyTemporalTransform(t)
 
         # Draw objects
         obj_axis.draw(view, projection, mode=GL_LINES)
+        obj_camTarget.draw(view, projection)
         obj_planeL.draw(view, projection)
         obj_planeR.draw(view, projection)
         planeS.draw(view, projection)

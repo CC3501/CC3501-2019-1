@@ -6,6 +6,7 @@ con texturas
 """
 
 from lib.basic_shapes import Shape as _Shape
+from lib.easy_shaders import GPUShape as _GPUShape
 from lib.easy_shaders import toGPUShape as _toGPUShape
 from OpenGL.GL import GL_POLYGON as _GL_POLYGON
 from OpenGL.GL import glUniformMatrix4fv as _glUniformMatrix4fv
@@ -30,39 +31,128 @@ class MergedShape:
         """
         if not isinstance(shapes, list):
             shapes = [shapes]
+        for i in range(len(shapes)):
+            if not isinstance(shapes[i], _GPUShape):
+                raise Exception('Object {0} of shapes list is not GPUShape instance'.format(i))
+
         self._shapes = shapes
         self._model = model
+        self._modelPrev = None
         self._enabled = enabled
         self._shader = shader
 
     def setShader(self, shader):
+        """
+        Set shader.
+
+        :param shader:
+        :return:
+        """
         self._shader = shader
 
     def translate(self, tx, ty, tz):
+        """
+        Translate model.
+
+        :param tx:
+        :param ty:
+        :param tz:
+        :return:
+        """
         self._model = _tr.matmul([_tr.translate(tx, ty, tz), self._model])
 
     def scale(self, sx, sy, sz):
+        """
+        Scale model.
+
+        :param sx:
+        :param sy:
+        :param sz:
+        :return:
+        """
         self._model = _tr.matmul([_tr.scale(sx, sy, sz), self._model])
 
     def uniformScale(self, s):
+        """
+        Uniform scale model.
+
+        :param s:
+        :return:
+        """
         self._model = _tr.matmul([_tr.uniformScale(s), self._model])
 
     def rotationX(self, theta):
+        """
+        Rotate model.
+
+        :param theta:
+        :return:
+        """
         self._model = _tr.matmul([_tr.rotationX(theta), self._model])
 
     def rotationY(self, theta):
+        """
+        Rotate model.
+
+        :param theta:
+        :return:
+        """
         self._model = _tr.matmul([_tr.rotationY(theta), self._model])
 
     def rotationZ(self, theta):
+        """
+        Rotate model.
+
+        :param theta:
+        :return:
+        """
         self._model = _tr.matmul([_tr.rotationZ(theta), self._model])
 
     def rotationA(self, theta, axis):
+        """
+        Rotate model.
+
+        :param theta:
+        :param axis:
+        :return:
+        """
         self._model = _tr.matmul([_tr.rotationA(theta, axis), self._model])
 
     def shearing(self, xy, yx, xz, zx, yz, zy):
+        """
+        Apply shear to model.
+
+        :param xy:
+        :param yx:
+        :param xz:
+        :param zx:
+        :param yz:
+        :param zy:
+        :return:
+        """
         self._model = _tr.matmul([_tr.shearing(xy, yx, xz, zx, yz, zy), self._model])
 
+    def applyTemporalTransform(self, t):
+        """
+        Apply temporal transform to model until drawing.
+
+        :param t:
+        :return:
+        """
+        self._modelPrev = self._model
+        self._model = _tr.matmul([t, self._model])
+
     def draw(self, view, projection, mode=_GL_TRIANGLES, shader=None, usemodel=True):
+        """
+        Draw model.
+
+        :param view:
+        :param projection:
+        :param mode:
+        :param shader:
+        :param usemodel:
+        :return:
+        """
         if not self._enabled:
             return
         if mode is None:
@@ -78,14 +168,32 @@ class MergedShape:
         _glUniformMatrix4fv(_glGetUniformLocation(shader.shaderProgram, "view"), 1, _GL_TRUE, view)
         for i in self._shapes:
             shader.drawShape(i, mode)
+        if self._modelPrev is not None:
+            self._model = self._modelPrev
+            self._modelPrev = None
 
     def disable(self):
+        """
+        Disable the model.
+
+        :return:
+        """
         self._enabled = False
 
     def enable(self):
+        """
+        Enable the model.
+
+        :return:
+        """
         self._enabled = True
 
     def clone(self):
+        """
+        Clone the model.
+
+        :return:
+        """
         return MergedShape(self._shapes.copy(), self._model, enabled=self._enabled, shader=self._shader)
 
 
