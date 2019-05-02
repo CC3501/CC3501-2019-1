@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
     # Create models
     gpuAxis = es.toGPUShape(bs.createAxis(1))
-    obj_axis = bs_ext.MergedShape(gpuAxis, shader=colorShaderProgram)
+    obj_axis = bs_ext.AdvancedGPUShape(gpuAxis, shader=colorShaderProgram)
 
     # Create one side of the wall
     vertices = [[1, 0], [0.9, 0.4], [0.5, 0.5], [0, 0.5]]
@@ -131,17 +131,27 @@ if __name__ == '__main__':
     obj_planeR = obj_planeL.clone()
     obj_planeR.translate(-1, 0, 0)
 
-    # Create screen plane of model
+    # Textured plane
     s1 = (0.5, 0, 0)
     s2 = (-0.5, 0, 0)
     s3 = (-0.5, 0.55, 0)
     s4 = (0.5, 0.55, 0)
     gpuTexturePlane = es.toGPUShape(bs_ext.createTexture4Vertex('shrek.png', s1, s2, s3, s4), GL_REPEAT, GL_LINEAR)
-    planeS = bs_ext.MergedShape(gpuTexturePlane, shader=textureShaderProgram)
-    planeS.rotationX(np.pi / 2)
+    obj_planeS = bs_ext.AdvancedGPUShape(gpuTexturePlane, shader=textureShaderProgram)
+    obj_planeS.rotationX(np.pi / 2)
+
+    # Bottom plane
+    s1 = (0.5, 0, 0)
+    s2 = (-0.5, 0, 0)
+    s3 = (-0.5, 0.55, 0)
+    s4 = (0.5, 0.55, 0)
+    gpuTexturePlane = es.toGPUShape(bs_ext.createTexture4Vertex('ricardo.png', s1, s2, s3, s4), GL_REPEAT, GL_LINEAR)
+    obj_planeB = bs_ext.AdvancedGPUShape(gpuTexturePlane, shader=textureShaderProgram)
+    obj_planeB.rotationZ(np.pi)
+    obj_planeB.scale(1, 2, 1)
 
     # Create camera target
-    obj_camTarget = bs_ext.MergedShape(es.toGPUShape(bs.createColorCube(1, 0, 0.5)), shader=colorShaderProgram)
+    obj_camTarget = bs_ext.AdvancedGPUShape(es.toGPUShape(bs.createColorCube(1, 0, 0.5)), shader=colorShaderProgram)
     obj_camTarget.uniformScale(0.05)
 
     # Main loop
@@ -174,7 +184,8 @@ if __name__ == '__main__':
         obj_camTarget.draw(view, projection)
         obj_planeL.draw(view, projection)
         obj_planeR.draw(view, projection)
-        planeS.draw(view, projection)
+        obj_planeS.draw(view, projection)
+        obj_planeB.draw(view, projection)
 
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
         glfw.swap_buffers(window)

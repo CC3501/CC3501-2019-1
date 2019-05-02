@@ -19,7 +19,7 @@ import lib.tripy as _tripy
 
 
 # Merged shape
-class MergedShape:
+class AdvancedGPUShape:
     def __init__(self, shapes, model=_tr.identity(), enabled=True, shader=None):
         """
         Constructor.
@@ -194,7 +194,7 @@ class MergedShape:
 
         :return:
         """
-        return MergedShape(self._shapes.copy(), self._model, enabled=self._enabled, shader=self._shader)
+        return AdvancedGPUShape(self._shapes.copy(), self._model, enabled=self._enabled, shader=self._shader)
 
 
 def __vertexUnpack3(vertex):
@@ -220,7 +220,7 @@ def createColorPlaneFromCurve(curve, triangulate, r, g, b, center=None):
     :param g: Green color
     :param b: Blue color
     :return: Merged shape
-    :rtype: MergedShape
+    :rtype: AdvancedGPUShape
     """
     shapes = []
 
@@ -245,7 +245,7 @@ def createColorPlaneFromCurve(curve, triangulate, r, g, b, center=None):
             c1, c2 = center
             shape = createColorTriangle((x1, y1, 0), (x2, y2, 0), (c1, c2, 0), r, g, b)
             shapes.append(_toGPUShape(shape))
-    return MergedShape(shapes)
+    return AdvancedGPUShape(shapes)
 
 
 def createColorTriangle(p1, p2, p3, r, g, b):
