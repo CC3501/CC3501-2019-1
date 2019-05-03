@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-Crea un cilindro en 3D.
+Testea curvas catmull no convexas.
 
 @author ppizarror
 """
@@ -11,17 +11,15 @@ from OpenGL.GL import *
 import sys
 
 import lib.transformations2 as tr2
-import lib.basic_shapes as bs
 import lib.easy_shaders as es
 import lib.camera as cam
 from lib.mathlib import Point3
-import numpy as np
 
 # Import extended shapes
 import lib.basic_shapes_extended as bs_ext
 
-# Import lights
-import lib.lights as light
+# Import curve
+import lib.catrom as catrom
 
 
 # A class to store the application control
@@ -37,11 +35,22 @@ controller = Controller()
 camera = cam.CameraR(r=3, center=Point3())
 camera.set_r_vel(0.1)
 
+camera = cam.CameraXYZ(pos=Point3(5, 5, 5), center=Point3(1, 1, 1), up=Point3(0, 0, 1))
+camera.move_center_z(1)
+camera.move_center_y(1)
+camera.move_center_z(1)
+camera.set_radial_vel(0.1)
+camera.far()  # Uses radial velocity
+camera.close()
+camera.move_x(1)
+camera.move_y(1)
+camera.move_z(1)
+view = camera.get_view()
+
 
 # noinspection PyUnusedLocal
 def on_key(window_obj, key, scancode, action, mods):
     global controller
-    global obj_light
 
     if action == glfw.REPEAT or action == glfw.PRESS:
         # Move the camera position
@@ -81,9 +90,6 @@ def on_key(window_obj, key, scancode, action, mods):
     elif key == glfw.KEY_ESCAPE:
         sys.exit()
 
-    elif key == glfw.KEY_Z:
-        obj_light.change_color(np.random.random(), np.random.random(), np.random.random())
-
 
 if __name__ == '__main__':
 
@@ -94,7 +100,7 @@ if __name__ == '__main__':
     width = 800
     height = 800
 
-    window = glfw.create_window(width, height, 'Cilindro bonito', None, None)
+    window = glfw.create_window(width, height, 'Curvas', None, None)
 
     if not window:
         glfw.terminate()
@@ -107,7 +113,6 @@ if __name__ == '__main__':
 
     # Creating shader programs for textures and for colores
     colorShaderProgram = es.SimpleModelViewProjectionShaderProgram()
-    phongPipeline = es.SimplePhongShaderProgram()
 
     # Setting up the clear screen color
     glClearColor(0.15, 0.15, 0.15, 1.0)
@@ -116,79 +121,21 @@ if __name__ == '__main__':
     # and which one is at the back
     glEnable(GL_DEPTH_TEST)
 
-    # Create models
-    gpuAxis = es.toGPUShape(bs.createAxis(1))
-    obj_axis = bs_ext.AdvancedGPUShape(gpuAxis, shader=colorShaderProgram)
+    # Create plane
+    vertices = [[1, 0], [0.9, 0.4], [0.4, 0.8], [0.5, 0.5], [0, 0.5]]
+    curve = catrom.getSplineFixed(vertices, 10)
 
-    # Create cilynder, the objective is create many cuads from the bottom, top and
-    # mantle. The cilynder is parametrized using an angle theta, a radius r and
-    # the height
-    h = 1
-    r = 0.25
+    # Create plane using center
+    obj_planeC = bs_ext.createColorPlaneFromCurve(curve, False, 0.6, 0.6, 0.6, center=(0.5, 0.5))
+    obj_planeC.setShader(colorShaderProgram)
+    obj_planeC.translate(ty=-0.25)
 
-    # Latitude and longitude of the cylinder, latitude subdivides theta, longitude
-    # subdivides h
-    lat = 3
-    lon = 20
+    # Create plane using triangulation
+    obj_planeT = bs_ext.createColorPlaneFromCurve(curve, True, 0.6, 0.6, 0.6)
+    obj_planeT.setShader(colorShaderProgram)
+    obj_planeT.translate(ty=0.25)
 
-    # Angle step
-    dang = 2 * np.pi / lat
-
-    # Color
-    color = {
-        'r': 1,  # Red
-        'g': 0,  # Green
-        'b': 0,  # Blue
-    }
-
-    cylinder_shape = []  # Store shapes
-
-    # Create mantle
-    for i in range(lon):  # Vertical component
-        for j in range(lat):  # Horizontal component
-
-            # Angle on step j
-            ang = dang * j
-
-            # Here we create a quad from 4 vertices
-            #
-            #    a/---- b/
-            #    |      |
-            #    d ---- c
-            a = [r * np.cos(ang), r * np.sin(ang), h / lon * (i + 1)]
-            b = [r * np.cos(ang + dang), r * np.sin(ang + dang), h / lon * (i + 1)]
-            c = [r * np.cos(ang + dang), r * np.sin(ang + dang), h / lon * i]
-            d = [r * np.cos(ang), r * np.sin(ang), h / lon * i]
-
-            # Create quad
-            shape = bs_ext.create4VertexColorNormal(a, b, c, d, color['r'], color['g'], color['b'])
-            cylinder_shape.append(es.toGPUShape(shape))
-
-    # Add the two covers
-    for j in range(lat):
-        ang = dang * j
-
-        # Bottom
-        a = [0, 0, 0]
-        b = [r * np.cos(ang), r * np.sin(ang), 0]
-        c = [r * np.cos(ang + dang), r * np.sin(ang + dang), 0]
-        shape = bs_ext.createTriangleColorNormal(c, b, a, color['r'], color['g'], color['b'])
-        cylinder_shape.append(es.toGPUShape(shape))
-
-        # Top
-        a = [0, 0, h]
-        b = [r * np.cos(ang), r * np.sin(ang), h]
-        c = [r * np.cos(ang + dang), r * np.sin(ang + dang), h]
-        shape = bs_ext.createTriangleColorNormal(c, b, a, color['r'], color['g'], color['b'])
-        cylinder_shape.append(es.toGPUShape(shape))
-
-    # Create cylinder object
-    obj_cylinder = bs_ext.AdvancedGPUShape(cylinder_shape, shader=phongPipeline)
-
-    # Create light
-    obj_light = light.Light(shader=phongPipeline, position=[5, 5, 5], color=[1, 1, 1])
-
-    # Main execution loop
+    # Main loop
     while not glfw.window_should_close(window):
         # Using GLFW to check for input events
         glfw.poll_events()
@@ -209,12 +156,9 @@ if __name__ == '__main__':
         # Get camera view matrix
         view = camera.get_view()
 
-        # Place light
-        obj_light.place()
-
         # Draw objects
-        obj_axis.draw(view, projection, mode=GL_LINES)
-        obj_cylinder.draw(view, projection)
+        obj_planeC.draw(view, projection)
+        # obj_planeT.draw(view, projection)
 
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen
         glfw.swap_buffers(window)

@@ -51,7 +51,7 @@ class AdvancedGPUShape:
         """
         self._shader = shader
 
-    def translate(self, tx, ty, tz):
+    def translate(self, tx=0, ty=0, tz=0):
         """
         Translate model.
 
@@ -62,7 +62,7 @@ class AdvancedGPUShape:
         """
         self._model = _tr.matmul([_tr.translate(tx, ty, tz), self._model])
 
-    def scale(self, sx, sy, sz):
+    def scale(self, sx=1, sy=1, sz=1):
         """
         Scale model.
 
@@ -73,7 +73,7 @@ class AdvancedGPUShape:
         """
         self._model = _tr.matmul([_tr.scale(sx, sy, sz), self._model])
 
-    def uniformScale(self, s):
+    def uniformScale(self, s=1):
         """
         Uniform scale model.
 
@@ -82,7 +82,7 @@ class AdvancedGPUShape:
         """
         self._model = _tr.matmul([_tr.uniformScale(s), self._model])
 
-    def rotationX(self, theta):
+    def rotationX(self, theta=0):
         """
         Rotate model.
 
@@ -91,7 +91,7 @@ class AdvancedGPUShape:
         """
         self._model = _tr.matmul([_tr.rotationX(theta), self._model])
 
-    def rotationY(self, theta):
+    def rotationY(self, theta=0):
         """
         Rotate model.
 
@@ -100,7 +100,7 @@ class AdvancedGPUShape:
         """
         self._model = _tr.matmul([_tr.rotationY(theta), self._model])
 
-    def rotationZ(self, theta):
+    def rotationZ(self, theta=0):
         """
         Rotate model.
 
@@ -119,7 +119,7 @@ class AdvancedGPUShape:
         """
         self._model = _tr.matmul([_tr.rotationA(theta, axis), self._model])
 
-    def shearing(self, xy, yx, xz, zx, yz, zy):
+    def shearing(self, xy=0, yx=0, xz=0, zx=0, yz=0, zy=0):
         """
         Apply shear to model.
 
@@ -240,7 +240,7 @@ def createColorPlaneFromCurve(curve, triangulate, r, g, b, center=None):
     else:
         if center is None:
             center = curve[0]
-        for i in range(0, len(curve)):
+        for i in range(0, len(curve) - 1):
             x1, y1 = curve[i]
             x2, y2 = curve[(i + 1) % len(curve)]
             c1, c2 = center

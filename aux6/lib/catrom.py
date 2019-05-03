@@ -1,5 +1,5 @@
 """
-Genera una spline de CatRom con varios vertices.
+Genera una spline de Catmull-Rom con varios vertices.
 
 @author ppizarror
 """

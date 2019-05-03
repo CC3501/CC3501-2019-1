@@ -156,14 +156,14 @@ if __name__ == '__main__':
         for j in range(ny):  # y
             xp = -1 + 2 / (nx - 1) * j
             yp = -1 + 2 / (ny - 1) * i
-            zp = f(xp, yp, 4)
+            zp = f(xp, yp, 4)  # Function number 4
             zlim = [min(zp, zlim[0]), max(zp, zlim[1])]
             vertex_grid.append([xp, yp, zp])
 
     # Calculate the difference between max and min zvalue
     dz = abs(zlim[1] - zlim[0])
     zmean = (zlim[1] + zlim[0]) / 2
-    dzf = min(1.0, 1 / (dz + 0.001))
+    dzf = min(1.0, 1 / (dz + 0.001))  # Height factor
 
     # Multiply all values for a factor, so the maximum height will be 1
     # Also the plot is centered

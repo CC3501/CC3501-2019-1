@@ -123,3 +123,4 @@ venv.bak/
 .idea/
 .vs/
 .vscode/
+*disabled*

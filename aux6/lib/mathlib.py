@@ -29,6 +29,7 @@ SOFTWARE.
 from __future__ import print_function
 import math as _math
 import sys as _sys
+import random as _rn
 
 # Constants
 _UTILS_MATH_POINT_2 = 'util-point-2'
@@ -1117,3 +1118,17 @@ def _xyz_to_spr(x, y, z):
 
     # Return tuple
     return r, phi, theta
+
+
+def random_sign():
+    """
+    Creates a random number from -1 to 1.
+
+    :return:
+    """
+    sign = _rn.randint(0, 100)
+    if sign < 50:
+        sign = -1.0
+    else:
+        sign = 1.0
+    return sign * _rn.random()
