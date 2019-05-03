@@ -31,7 +31,7 @@ class Controller:
 controller = Controller()
 
 # Create camera
-camera = cam.CameraR(r=3, center=Point3())
+camera = cam.CameraR(r=3.5, center=Point3())
 camera.set_r_vel(0.1)
 
 
@@ -172,6 +172,12 @@ if __name__ == '__main__':
         zlim = [min(vertex_grid[i][2], zlim[0]), max(vertex_grid[i][2], zlim[1])]
     dz = abs(zlim[1] - zlim[0])
 
+    # Force the color
+    color_plot = {
+        'enabled': False,
+        'color': [1, 1, 1]
+    }
+
     # Create the quads
     quad_shapes = []
     for i in range(nx - 1):  # x
@@ -191,7 +197,10 @@ if __name__ == '__main__':
             # Calculate color from interpolation
             zval = (pa[2] + pb[2] + pc[2] + pd[2]) / 4  # Average height of quad
             zf = (zval - zlim[0]) / (dz + 0.001)
-            color = colorHSV(1 - zf)
+            if not color_plot['enabled']:
+                color = colorHSV(1 - zf)
+            else:
+                color = color_plot['color']
 
             # Create the figure
             quad_shapes.append(es.toGPUShape(bs_ext.create4VertexColorNormal(pa, pb, pc, pd,
