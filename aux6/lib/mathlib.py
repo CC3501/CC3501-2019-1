@@ -673,6 +673,8 @@ class Vector3(object):
         :rtype: Vector3
         """
         modl = self.get_module()
+        if modl == 0:
+            modl = 1
         return Vector3(self.x / modl, self.y / modl, self.z / modl)
 
     def clone(self):

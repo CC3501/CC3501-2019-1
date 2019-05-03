@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
     # Latitude and longitude of the cylinder, latitude subdivides theta, longitude
     # subdivides h
-    lat = 3
+    lat = 20
     lon = 20
 
     # Angle step
