@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-Crea un modelo usando curvas en 3D.
+Crea un cilindro en 3D.
 
 @author ppizarror
 """
@@ -8,7 +8,6 @@ Crea un modelo usando curvas en 3D.
 # Library imports
 import glfw
 from OpenGL.GL import *
-import numpy as np
 import sys
 
 import lib.transformations2 as tr2
@@ -16,12 +15,13 @@ import lib.basic_shapes as bs
 import lib.easy_shaders as es
 import lib.camera as cam
 from lib.mathlib import Point3
+import numpy as np
 
 # Import extended shapes
 import lib.basic_shapes_extended as bs_ext
 
-# Import curve
-import lib.catrom as catrom
+# Import lights
+import lib.lights as light
 
 
 # A class to store the application control
@@ -41,6 +41,7 @@ camera.set_r_vel(0.1)
 # noinspection PyUnusedLocal
 def on_key(window_obj, key, scancode, action, mods):
     global controller
+    global obj_light
 
     if action == glfw.REPEAT or action == glfw.PRESS:
         # Move the camera position
@@ -80,6 +81,9 @@ def on_key(window_obj, key, scancode, action, mods):
     elif key == glfw.KEY_ESCAPE:
         sys.exit()
 
+    elif key == glfw.KEY_Z:
+        obj_light.change_color(np.random.random(), np.random.random(), np.random.random())
+
 
 if __name__ == '__main__':
 
@@ -90,7 +94,7 @@ if __name__ == '__main__':
     width = 800
     height = 800
 
-    window = glfw.create_window(width, height, 'Curvas', None, None)
+    window = glfw.create_window(width, height, 'Cilindro bonito', None, None)
 
     if not window:
         glfw.terminate()
@@ -102,8 +106,8 @@ if __name__ == '__main__':
     glfw.set_key_callback(window, on_key)
 
     # Creating shader programs for textures and for colores
-    textureShaderProgram = es.SimpleTextureModelViewProjectionShaderProgram()
     colorShaderProgram = es.SimpleModelViewProjectionShaderProgram()
+    phongPipeline = es.SimplePhongShaderProgram()
 
     # Setting up the clear screen color
     glClearColor(0.15, 0.15, 0.15, 1.0)
@@ -116,45 +120,75 @@ if __name__ == '__main__':
     gpuAxis = es.toGPUShape(bs.createAxis(1))
     obj_axis = bs_ext.AdvancedGPUShape(gpuAxis, shader=colorShaderProgram)
 
-    # Create one side of the wall
-    vertices = [[1, 0], [0.9, 0.4], [0.5, 0.5], [0, 0.5]]
-    curve = catrom.getSplineFixed(vertices, 10)
+    # Create cilynder, the objective is create many cuads from the bottom, top and
+    # mantle. The cilynder is parametrized using an angle theta, a radius r and
+    # the height
+    h = 1
+    r = 0.25
 
-    obj_planeL = bs_ext.createColorPlaneFromCurve(curve, False, 0.6, 0.6, 0.6, center=(0, 0))
-    obj_planeL.uniformScale(1.1)
-    obj_planeL.rotationX(np.pi / 2)
-    obj_planeL.rotationZ(-np.pi / 2)
-    obj_planeL.translate(0.5, 0, 0)
-    obj_planeL.setShader(colorShaderProgram)
+    # Latitude and longitude of the cylinder, latitude subdivides theta, longitude
+    # subdivides h
+    lat = 20
+    lon = 20
 
-    # Create other side of the wall
-    obj_planeR = obj_planeL.clone()
-    obj_planeR.translate(-1, 0, 0)
+    # Angle step
+    dang = 2 * np.pi / lat
 
-    # Textured plane
-    s1 = (0.5, 0, 0)
-    s2 = (-0.5, 0, 0)
-    s3 = (-0.5, 0.55, 0)
-    s4 = (0.5, 0.55, 0)
-    gpuTexturePlane = es.toGPUShape(bs_ext.create4VertexTexture('shrek.png', s1, s2, s3, s4), GL_REPEAT, GL_LINEAR)
-    obj_planeS = bs_ext.AdvancedGPUShape(gpuTexturePlane, shader=textureShaderProgram)
-    obj_planeS.rotationX(np.pi / 2)
+    # Color
+    color = {
+        'r': 1,  # Red
+        'g': 0,  # Green
+        'b': 0,  # Blue
+    }
 
-    # Bottom plane
-    s1 = (0.5, 0, 0)
-    s2 = (-0.5, 0, 0)
-    s3 = (-0.5, 0.55, 0)
-    s4 = (0.5, 0.55, 0)
-    gpuTexturePlane = es.toGPUShape(bs_ext.create4VertexTexture('ricardo.png', s1, s2, s3, s4), GL_REPEAT, GL_LINEAR)
-    obj_planeB = bs_ext.AdvancedGPUShape(gpuTexturePlane, shader=textureShaderProgram)
-    obj_planeB.rotationZ(np.pi)
-    obj_planeB.scale(1, 2, 1)
+    cylinder_shape = []  # Store shapes
 
-    # Create camera target
-    obj_camTarget = bs_ext.AdvancedGPUShape(es.toGPUShape(bs.createColorCube(1, 0, 0.5)), shader=colorShaderProgram)
-    obj_camTarget.uniformScale(0.05)
+    # Create mantle
+    for i in range(lon):  # Vertical component
+        for j in range(lat):  # Horizontal component
 
-    # Main loop
+            # Angle on step j
+            ang = dang * j
+
+            # Here we create a quad from 4 vertices
+            #
+            #    a/---- b/
+            #    |      |
+            #    c ---- d
+            a = [r * np.cos(ang), r * np.sin(ang), h / lon * (i + 1)]
+            b = [r * np.cos(ang + dang), r * np.sin(ang + dang), h / lon * (i + 1)]
+            d = [r * np.cos(ang + dang), r * np.sin(ang + dang), h / lon * i]
+            c = [r * np.cos(ang), r * np.sin(ang), h / lon * i]
+
+            # Create quad
+            shape = bs_ext.create4VertexColorNormal(a, b, d, c, color['r'], color['g'], color['b'])
+            cylinder_shape.append(es.toGPUShape(shape))
+
+    # Add the two covers
+    for j in range(lat):
+        ang = dang * j
+
+        # Bottom
+        a = [0, 0, 0]
+        b = [r * np.cos(ang), r * np.sin(ang), 0]
+        c = [r * np.cos(ang + dang), r * np.sin(ang + dang), 0]
+        shape = bs_ext.createTriangleColorNormal(c, b, a, color['r'], color['g'], color['b'])
+        cylinder_shape.append(es.toGPUShape(shape))
+
+        # Top
+        a = [0, 0, h]
+        b = [r * np.cos(ang), r * np.sin(ang), h]
+        c = [r * np.cos(ang + dang), r * np.sin(ang + dang), h]
+        shape = bs_ext.createTriangleColorNormal(c, b, a, color['r'], color['g'], color['b'])
+        cylinder_shape.append(es.toGPUShape(shape))
+
+    # Create cylinder object
+    obj_cylinder = bs_ext.AdvancedGPUShape(cylinder_shape, shader=phongPipeline)
+
+    # Create light
+    obj_light = light.Light(phongPipeline, [5, 5, 5], [1, 1, 1])
+
+    # Main execution loop
     while not glfw.window_should_close(window):
         # Using GLFW to check for input events
         glfw.poll_events()
@@ -175,17 +209,15 @@ if __name__ == '__main__':
         # Get camera view matrix
         view = camera.get_view()
 
-        # Update target cube object
-        t = tr2.translate(camera.get_center_x(), camera.get_center_y(), camera.get_center_z())
-        obj_camTarget.applyTemporalTransform(t)
+        # Place light
+        obj_light.place()
 
         # Draw objects
         obj_axis.draw(view, projection, mode=GL_LINES)
-        obj_camTarget.draw(view, projection)
-        obj_planeL.draw(view, projection)
-        obj_planeR.draw(view, projection)
-        obj_planeS.draw(view, projection)
-        obj_planeB.draw(view, projection)
+        obj_cylinder.draw(view, projection)
+
+        # Update target cube object
+        t = tr2.translate(camera.get_center_x(), camera.get_center_y(), camera.get_center_z())
 
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
         glfw.swap_buffers(window)

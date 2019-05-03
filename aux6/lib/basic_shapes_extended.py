@@ -16,6 +16,7 @@ from OpenGL.GL import GL_TRIANGLES as _GL_TRIANGLES
 from OpenGL.GL import glUseProgram as _glUseProgram
 import lib.transformations2 as _tr
 import lib.tripy as _tripy
+from lib.mathlib import _normal_3_points as _normal3
 
 
 # Merged shape
@@ -234,7 +235,7 @@ def createColorPlaneFromCurve(curve, triangulate, r, g, b, center=None):
             x1, y1 = i[0]
             x2, y2 = i[1]
             x3, y3 = i[2]
-            shape = createColorTriangle((x1, y1, 0), (x2, y2, 0), (x3, y3, 0), r, g, b)
+            shape = createTriangleColor((x1, y1, 0), (x2, y2, 0), (x3, y3, 0), r, g, b)
             shapes.append(_toGPUShape(shape))
     else:
         if center is None:
@@ -243,51 +244,12 @@ def createColorPlaneFromCurve(curve, triangulate, r, g, b, center=None):
             x1, y1 = curve[i]
             x2, y2 = curve[(i + 1) % len(curve)]
             c1, c2 = center
-            shape = createColorTriangle((x1, y1, 0), (x2, y2, 0), (c1, c2, 0), r, g, b)
+            shape = createTriangleColor((x1, y1, 0), (x2, y2, 0), (c1, c2, 0), r, g, b)
             shapes.append(_toGPUShape(shape))
     return AdvancedGPUShape(shapes)
 
 
-def createColorTriangle(p1, p2, p3, r, g, b):
-    """
-    Creates a triangle with color.
-
-    :param p1: Vertex (x,y,z)
-    :param p2: Vertex (x,y,z)
-    :param p3: Vertex (x,y,z)
-    :param r: Red color
-    :param g: Green color
-    :param b: Blue color
-    :return:
-    """
-    # Extend
-    p1 = __vertexUnpack3(p1)
-    p2 = __vertexUnpack3(p2)
-    p3 = __vertexUnpack3(p3)
-
-    # Dissamble vertices
-    x1, y1, z1 = p1
-    x2, y2, z2 = p2
-    x3, y3, z3 = p3
-
-    # Defining locations and color
-    vertices = [
-        # X, Y,  Z, R, G, B,
-        x1, y1, z1, r, g, b,
-        x2, y2, z2, r, g, b,
-        x3, y3, z3, r, g, b,
-    ]
-
-    # Defining connections among vertices
-    # We have a triangle every 3 indices specified
-    indices = [
-        0, 1, 2
-    ]
-
-    return _Shape(vertices, indices)
-
-
-def createTexture4Vertex(image_filename, p1, p2, p3, p4, nx=1, ny=1):
+def create4VertexTexture(image_filename, p1, p2, p3, p4, nx=1, ny=1):
     """
     Creates a 4-vertex poly with texture.
 
@@ -329,7 +291,143 @@ def createTexture4Vertex(image_filename, p1, p2, p3, p4, nx=1, ny=1):
     return _Shape(vertices, indices, image_filename)
 
 
-def createTextureTriangle(image_filename, p1, p2, p3, nx=1, ny=1):
+def create4VertexTextureNormal(image_filename, p1, p2, p3, p4, nx=1, ny=1):
+    """
+    Creates a 4-vertex poly with texture.
+
+    :param image_filename: Image
+    :param p1: Vertex (x,y,z)
+    :param p2: Vertex (x,y,z)
+    :param p3: Vertex (x,y,z)
+    :param p4: Vertex (x,y,z)
+    :param nx: Texture coord pos
+    :param ny: Texture coord pos
+    :return:
+    """
+    # Extend
+    p1 = __vertexUnpack3(p1)
+    p2 = __vertexUnpack3(p2)
+    p3 = __vertexUnpack3(p3)
+    p4 = __vertexUnpack3(p4)
+
+    # Dissamble vertices
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    x3, y3, z3 = p3
+    x4, y4, z4 = p4
+
+    # Calculate the normal
+    normal = _normal3(p3, p2, p1)
+
+    # Defining locations and texture coordinates for each vertex of the shape
+    vertices = [
+        x1, y1, z1, 0, 0, normal.get_x(), normal.get_y(), normal.get_z(),
+        x2, y2, z2, nx, 0, normal.get_x(), normal.get_y(), normal.get_z(),
+        x3, y3, z3, nx, ny, normal.get_x(), normal.get_y(), normal.get_z(),
+        x4, y4, z4, 0, ny, normal.get_x(), normal.get_y(), normal.get_z()
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2,
+        2, 3, 0]
+
+    return _Shape(vertices, indices, image_filename)
+
+
+def create4VertexColor(p1, p2, p3, p4, r, g, b):
+    """
+    Creates a 4-vertex poly with color.
+
+    :param p1: Vertex (x,y,z)
+    :param p2: Vertex (x,y,z)
+    :param p3: Vertex (x,y,z)
+    :param p4: Vertex (x,y,z)
+    :param r: Red color
+    :param g: Green color
+    :param b: Blue color
+    :return:
+    """
+    # Extend
+    p1 = __vertexUnpack3(p1)
+    p2 = __vertexUnpack3(p2)
+    p3 = __vertexUnpack3(p3)
+    p4 = __vertexUnpack3(p4)
+
+    # Dissamble vertices
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    x3, y3, z3 = p3
+    x4, y4, z4 = p4
+
+    # Defining locations and color
+    vertices = [
+        # X, Y,  Z, R, G, B,
+        x1, y1, z1, r, g, b,
+        x2, y2, z2, r, g, b,
+        x3, y3, z3, r, g, b,
+        x4, y4, z4, r, g, b,
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2,
+        2, 3, 0
+    ]
+
+    return _Shape(vertices, indices)
+
+
+def create4VertexColorNormal(p1, p2, p3, p4, r, g, b):
+    """
+    Creates a 4-vertex figure with color and normals.
+
+    :param p1: Vertex (x,y,z)
+    :param p2: Vertex (x,y,z)
+    :param p3: Vertex (x,y,z)
+    :param p4: Vertex (x,y,z)
+    :param r: Red color
+    :param g: Green color
+    :param b: Blue color
+    :return:
+    """
+    # Extend
+    p1 = __vertexUnpack3(p1)
+    p2 = __vertexUnpack3(p2)
+    p3 = __vertexUnpack3(p3)
+    p4 = __vertexUnpack3(p4)
+
+    # Dissamble vertices
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    x3, y3, z3 = p3
+    x4, y4, z4 = p4
+
+    # Calculate the normal
+    normal = _normal3(p3, p2, p1)
+
+    # Defining locations and color
+    vertices = [
+        # X, Y,  Z, R, G, B,
+        x1, y1, z1, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
+        x2, y2, z2, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
+        x3, y3, z3, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
+        x4, y4, z4, r, g, b, normal.get_x(), normal.get_y(), normal.get_z()
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2,
+        2, 3, 0
+    ]
+
+    return _Shape(vertices, indices)
+
+
+def createTriangleTexture(image_filename, p1, p2, p3, nx=1, ny=1):
     """
     Creates a triangle with textures.
 
@@ -361,3 +459,121 @@ def createTextureTriangle(image_filename, p1, p2, p3, nx=1, ny=1):
     ]
 
     return _Shape(vertices, indices, image_filename)
+
+
+def createTriangleTextureNormal(image_filename, p1, p2, p3, nx=1, ny=1):
+    """
+    Creates a triangle with textures.
+
+    :param image_filename: Image
+    :param p1: Vertex (x,y,z)
+    :param p2: Vertex (x,y,z)
+    :param p3: Vertex (x,y,z)
+    :param nx: Texture coord pos
+    :param ny: Texture coord pos
+    :return:
+    """
+    # Dissamble vertices
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    x3, y3, z3 = p3
+
+    # Calculate the normal
+    normal = _normal3(p3, p2, p1)
+
+    # Defining locations and texture coordinates for each vertex of the shape
+    vertices = [
+        # X, Y,  Z,   U,   V
+        x1, y1, z1, (nx + ny) / 2, nx, normal.get_x(), normal.get_y(), normal.get_z(),
+        x2, y2, z2, 0.0, 0.0, normal.get_x(), normal.get_y(), normal.get_z(),
+        x3, y3, z3, ny, 0.0, normal.get_x(), normal.get_y(), normal.get_z()
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2
+    ]
+
+    return _Shape(vertices, indices, image_filename)
+
+
+def createTriangleColor(p1, p2, p3, r, g, b):
+    """
+    Creates a triangle with color.
+
+    :param p1: Vertex (x,y,z)
+    :param p2: Vertex (x,y,z)
+    :param p3: Vertex (x,y,z)
+    :param r: Red color
+    :param g: Green color
+    :param b: Blue color
+    :return:
+    """
+    # Extend
+    p1 = __vertexUnpack3(p1)
+    p2 = __vertexUnpack3(p2)
+    p3 = __vertexUnpack3(p3)
+
+    # Dissamble vertices
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    x3, y3, z3 = p3
+
+    # Defining locations and color
+    vertices = [
+        # X, Y,  Z, R, G, B,
+        x1, y1, z1, r, g, b,
+        x2, y2, z2, r, g, b,
+        x3, y3, z3, r, g, b,
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2
+    ]
+
+    return _Shape(vertices, indices)
+
+
+def createTriangleColorNormal(p1, p2, p3, r, g, b):
+    """
+    Creates a triangle with color.
+
+    :param p1: Vertex (x,y,z)
+    :param p2: Vertex (x,y,z)
+    :param p3: Vertex (x,y,z)
+    :param r: Red color
+    :param g: Green color
+    :param b: Blue color
+    :return:
+    """
+    # Extend
+    p1 = __vertexUnpack3(p1)
+    p2 = __vertexUnpack3(p2)
+    p3 = __vertexUnpack3(p3)
+
+    # Dissamble vertices
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    x3, y3, z3 = p3
+
+    # Calculate the normal
+    normal = _normal3(p3, p2, p1)
+
+    # Defining locations and color
+    vertices = [
+        # X, Y,  Z, R, G, B,
+        x1, y1, z1, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
+        x2, y2, z2, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
+        x3, y3, z3, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2
+    ]
+
+    return _Shape(vertices, indices)
