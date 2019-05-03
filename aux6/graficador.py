@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-Crea un modelo usando curvas en 3D.
+Graficador, genera una superficie 3D que representa una función.
 
 @author ppizarror
 """
@@ -8,20 +8,17 @@ Crea un modelo usando curvas en 3D.
 # Library imports
 import glfw
 from OpenGL.GL import *
-import numpy as np
 import sys
+import numpy as np
 
 import lib.transformations2 as tr2
 import lib.basic_shapes as bs
 import lib.easy_shaders as es
 import lib.camera as cam
 from lib.mathlib import Point3
-
-# Import extended shapes
 import lib.basic_shapes_extended as bs_ext
-
-# Import curve
-import lib.catrom as catrom
+import lib.lights as light
+from lib.colors import colorHSV
 
 
 # A class to store the application control
@@ -81,6 +78,39 @@ def on_key(window_obj, key, scancode, action, mods):
         sys.exit()
 
 
+def f(x, y, fun):
+    """
+    Function that returns the value of z for each vertex.
+    z = f(x,y)
+
+    :param x:
+    :param y:
+    :param fun: Function number
+    :return:
+    """
+    if fun == 0:
+        return x * y
+    elif fun == 1:  # Bumps
+        return np.sin(5 * x) * np.cos(5 * y) / 5
+    elif fun == 2:  # Pyramid
+        return 1 - abs(x + y) - abs(y - x)
+    elif fun == 3:  # Hills
+        return 0.2 * (3 * np.exp(-(y + 1) ** 2 - x ** 2) * (x - 1) ** 2 - (-(x + 1) ** 2 - y ** 2)
+                      / 3 + np.exp(-x ** 2 - y ** 2) * (10 * x ** 3 - 2 * x + 10 * y ** 5))
+    elif fun == 4:  # Mantle
+        return np.sin(10 * (x ** 2 + y ** 2)) / 10
+    elif fun == 5:  # Intersecting fences
+        return 0.75 / np.exp((x * 5) ** 2 * (y * 5) ** 2)
+    elif fun == 6:  # Letter A
+        return ((1 - np.sign(-x - 0.9 + abs(y * 2))) / 3 * (np.sign(0.9 - x) + 1) / 3) * \
+               (np.sign(x + 0.65) + 1) / 2 - (
+                       (1 - np.sign(-x - 0.39 + abs(y * 2))) / 3 * (np.sign(0.9 - x) + 1) / 3) + (
+                       (1 - np.sign(-x - 0.39 + abs(y * 2))) / 3 * (np.sign(0.6 - x) + 1) / 3) * (
+                       np.sign(x - 0.35) + 1) / 2
+    else:
+        return 0
+
+
 if __name__ == '__main__':
 
     # Initialize glfw
@@ -90,7 +120,7 @@ if __name__ == '__main__':
     width = 800
     height = 800
 
-    window = glfw.create_window(width, height, 'Curvas', None, None)
+    window = glfw.create_window(width, height, 'Graficador cuma', None, None)
 
     if not window:
         glfw.terminate()
@@ -102,7 +132,7 @@ if __name__ == '__main__':
     glfw.set_key_callback(window, on_key)
 
     # Creating shader programs for textures and for colores
-    textureShaderProgram = es.SimpleTextureModelViewProjectionShaderProgram()
+    phongPipeline = es.SimplePhongShaderProgram()
     colorShaderProgram = es.SimpleModelViewProjectionShaderProgram()
 
     # Setting up the clear screen color
@@ -116,43 +146,62 @@ if __name__ == '__main__':
     gpuAxis = es.toGPUShape(bs.createAxis(1))
     obj_axis = bs_ext.AdvancedGPUShape(gpuAxis, shader=colorShaderProgram)
 
-    # Create one side of the wall
-    vertices = [[1, 0], [0.9, 0.4], [0.5, 0.5], [0, 0.5]]
-    curve = catrom.getSplineFixed(vertices, 10)
+    # Create the grid of the system
+    vertex_grid = []
+    nx = 40
+    ny = 40
+    zlim = [0, 0]
 
-    obj_planeL = bs_ext.createColorPlaneFromCurve(curve, False, 0.6, 0.6, 0.6, center=(0, 0))
-    obj_planeL.uniformScale(1.1)
-    obj_planeL.rotationX(np.pi / 2)
-    obj_planeL.rotationZ(-np.pi / 2)
-    obj_planeL.translate(0.5, 0, 0)
-    obj_planeL.setShader(colorShaderProgram)
+    for i in range(nx):  # x
+        for j in range(ny):  # y
+            xp = -1 + 2 / (nx - 1) * j
+            yp = -1 + 2 / (ny - 1) * i
+            zp = f(xp, yp, 4)
+            zlim = [min(zp, zlim[0]), max(zp, zlim[1])]
+            vertex_grid.append([xp, yp, zp])
 
-    # Create other side of the wall
-    obj_planeR = obj_planeL.clone()
-    obj_planeR.translate(-1, 0, 0)
+    # Calculate the difference between max and min zvalue
+    dz = abs(zlim[1] - zlim[0])
+    zmean = (zlim[1] + zlim[0]) / 2
+    dzf = min(1.0, 1 / (dz + 0.001))
 
-    # Textured plane
-    s1 = (0.5, 0, 0)
-    s2 = (-0.5, 0, 0)
-    s3 = (-0.5, 0.55, 0)
-    s4 = (0.5, 0.55, 0)
-    gpuTexturePlane = es.toGPUShape(bs_ext.create4VertexTexture('shrek.png', s1, s2, s3, s4), GL_REPEAT, GL_LINEAR)
-    obj_planeS = bs_ext.AdvancedGPUShape(gpuTexturePlane, shader=textureShaderProgram)
-    obj_planeS.rotationX(np.pi / 2)
+    # Multiply all values for a factor, so the maximum height will be 1
+    # Also the plot is centered
+    for i in range(len(vertex_grid)):
+        vertex_grid[i][2] = (vertex_grid[i][2] - zmean) * dzf
+        zlim = [min(vertex_grid[i][2], zlim[0]), max(vertex_grid[i][2], zlim[1])]
+    dz = abs(zlim[1] - zlim[0])
 
-    # Bottom plane
-    s1 = (0.5, 0, 0)
-    s2 = (-0.5, 0, 0)
-    s3 = (-0.5, 0.55, 0)
-    s4 = (0.5, 0.55, 0)
-    gpuTexturePlane = es.toGPUShape(bs_ext.create4VertexTexture('ricardo.png', s1, s2, s3, s4), GL_REPEAT, GL_LINEAR)
-    obj_planeB = bs_ext.AdvancedGPUShape(gpuTexturePlane, shader=textureShaderProgram)
-    obj_planeB.rotationZ(np.pi)
-    obj_planeB.scale(1, 2, 1)
+    # Create the quads
+    quad_shapes = []
+    for i in range(nx - 1):  # x
+        for j in range(ny - 1):
+            # Select positions
+            a = i * ny + j
+            b = a + 1
+            c = (i + 1) * ny + j + 1
+            d = c - 1
 
-    # Create camera target
-    obj_camTarget = bs_ext.AdvancedGPUShape(es.toGPUShape(bs.createColorCube(1, 0, 0.5)), shader=colorShaderProgram)
-    obj_camTarget.uniformScale(0.05)
+            # Select vertices
+            pa = vertex_grid[a]
+            pb = vertex_grid[b]
+            pc = vertex_grid[c]
+            pd = vertex_grid[d]
+
+            # Calculate color from interpolation
+            zval = (pa[2] + pb[2] + pc[2] + pd[2]) / 4  # Average height of quad
+            zf = (zval - zlim[0]) / (dz + 0.001)
+            color = colorHSV(1 - zf)
+
+            # Create the figure
+            quad_shapes.append(es.toGPUShape(bs_ext.create4VertexColorNormal(pa, pb, pc, pd,
+                                                                             color[0], color[1], color[2])))
+
+    # Create main object
+    obj_main = bs_ext.AdvancedGPUShape(quad_shapes, shader=phongPipeline)
+
+    # Create light
+    obj_light = light.Light(phongPipeline, [0, 0, 6], [1, 1, 1])
 
     # Main loop
     while not glfw.window_should_close(window):
@@ -175,17 +224,12 @@ if __name__ == '__main__':
         # Get camera view matrix
         view = camera.get_view()
 
-        # Update target cube object
-        t = tr2.translate(camera.get_center_x(), camera.get_center_y(), camera.get_center_z())
-        obj_camTarget.applyTemporalTransform(t)
+        # Place light
+        obj_light.place()
 
         # Draw objects
         obj_axis.draw(view, projection, mode=GL_LINES)
-        obj_camTarget.draw(view, projection)
-        obj_planeL.draw(view, projection)
-        obj_planeR.draw(view, projection)
-        obj_planeS.draw(view, projection)
-        obj_planeB.draw(view, projection)
+        obj_main.draw(view, projection)
 
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
         glfw.swap_buffers(window)

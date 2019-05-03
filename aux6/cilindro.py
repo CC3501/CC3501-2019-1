@@ -216,9 +216,6 @@ if __name__ == '__main__':
         obj_axis.draw(view, projection, mode=GL_LINES)
         obj_cylinder.draw(view, projection)
 
-        # Update target cube object
-        t = tr2.translate(camera.get_center_x(), camera.get_center_y(), camera.get_center_z())
-
         # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
         glfw.swap_buffers(window)
 
