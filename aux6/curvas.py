@@ -187,7 +187,7 @@ if __name__ == '__main__':
         obj_planeS.draw(view, projection)
         obj_planeB.draw(view, projection)
 
-        # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
+        # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen
         glfw.swap_buffers(window)
 
     glfw.terminate()

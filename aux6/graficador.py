@@ -231,7 +231,7 @@ if __name__ == '__main__':
         obj_axis.draw(view, projection, mode=GL_LINES)
         obj_main.draw(view, projection)
 
-        # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen.
+        # Once the drawing is rendered, buffers are swap so an uncomplete drawing is never seen
         glfw.swap_buffers(window)
 
     glfw.terminate()

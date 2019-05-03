@@ -165,8 +165,8 @@ class AdvancedGPUShape:
         _glUseProgram(shader.shaderProgram)
         if usemodel:
             _glUniformMatrix4fv(_glGetUniformLocation(shader.shaderProgram, 'model'), 1, _GL_TRUE, self._model)
-        _glUniformMatrix4fv(_glGetUniformLocation(shader.shaderProgram, "projection"), 1, _GL_TRUE, projection)
-        _glUniformMatrix4fv(_glGetUniformLocation(shader.shaderProgram, "view"), 1, _GL_TRUE, view)
+        _glUniformMatrix4fv(_glGetUniformLocation(shader.shaderProgram, 'projection'), 1, _GL_TRUE, projection)
+        _glUniformMatrix4fv(_glGetUniformLocation(shader.shaderProgram, 'view'), 1, _GL_TRUE, view)
         for i in self._shapes:
             shader.drawShape(i, mode)
         if self._modelPrev is not None:
@@ -367,7 +367,7 @@ def create4VertexColor(p1, p2, p3, p4, r, g, b):
         x1, y1, z1, r, g, b,
         x2, y2, z2, r, g, b,
         x3, y3, z3, r, g, b,
-        x4, y4, z4, r, g, b,
+        x4, y4, z4, r, g, b
     ]
 
     # Defining connections among vertices
@@ -449,7 +449,7 @@ def createTriangleTexture(image_filename, p1, p2, p3, nx=1, ny=1):
         # X, Y,  Z,   U,   V
         x1, y1, z1, (nx + ny) / 2, nx,
         x2, y2, z2, 0.0, 0.0,
-        x3, y3, z3, ny, 0.0,
+        x3, y3, z3, ny, 0.0
     ]
 
     # Defining connections among vertices
@@ -567,7 +567,7 @@ def createTriangleColorNormal(p1, p2, p3, r, g, b):
         # X, Y,  Z, R, G, B,
         x1, y1, z1, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
         x2, y2, z2, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
-        x3, y3, z3, r, g, b, normal.get_x(), normal.get_y(), normal.get_z(),
+        x3, y3, z3, r, g, b, normal.get_x(), normal.get_y(), normal.get_z()
     ]
 
     # Defining connections among vertices
