@@ -2,6 +2,7 @@
  UTILS
  Funciones utilitarias.
  @author Pablo Pizarro R. @ppizarror.com
+ @date 2018-2019
  @license MIT
  */
 "use strict";

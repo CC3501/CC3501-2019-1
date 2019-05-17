@@ -3,12 +3,12 @@ Código principal del problema. Instancia un plano y una pokebola.
 Esta rebotará siguiendo alguna dirección y una velocidad inicial.
 
 @author Pablo Pizarro R. @ppizarror
-@date 2018
+@date 2018-2019
 @license MIT
 """
 
 # Importación de librerías
-from PyOpenGLtoolbox import *  # Hecho con versión 2.2.1
+from PyOpenGLtoolbox import *  # Hecho con versión 2.3.0
 from pokebola import Pokebola
 
 """

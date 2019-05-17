@@ -1,6 +1,7 @@
 /**
  Punto en 2D
  @author Pablo Pizarro R. @ppizarror.com
+ @date 2018-2019
  @license MIT
  */
 "use strict";
@@ -71,6 +72,7 @@ function Point2D(posx, posy, posz) {
         return this._posz;
     };
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Imprime la posición en consola
      */

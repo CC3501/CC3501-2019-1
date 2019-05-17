@@ -6,7 +6,7 @@ métodos propios de este objeto:
     - Dibujarse
 
 @author Pablo Pizarro R. @ppizarror
-@date 2018
+@date 2018-2019
 @license MIT
 """
 
