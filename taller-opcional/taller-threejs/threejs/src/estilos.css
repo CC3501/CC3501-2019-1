@@ -1,0 +1,18 @@
+/**
+Estilos de la aplicación
+ */
+
+body {
+    overflow: hidden;
+}
+
+#app {
+    background-color: #353535;
+    bottom: 0;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+}

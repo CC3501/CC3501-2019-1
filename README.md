@@ -8,5 +8,5 @@ Semestre otoño 2019.
 ## Cuerpo docente
 | Auxiliar | correo |
 | :-: |:-:|
-| Pablo Pizarro R. | pablo.pizarro@ing.uchile.cl |
+| Pablo Pizarro R. | pablo@ppizarror.com |
 | Diego Donoso | diego.donoso@ing.uchile.cl |
